@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartRx - Trợ Lý Sức Khỏe Gia Đình</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#e2e8f0;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.app{width:100%;max-width:430px;background:#fff;border-radius:28px;box-shadow:0 20px 60px rgba(0,0,0,.15);overflow:hidden;display:flex;flex-direction:column;min-height:96vh}
+.header{background:linear-gradient(135deg,#0369a1,#0284c7);color:#fff;padding:24px 20px 40px;border-radius:0 0 32px 32px;position:relative}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{background:rgba(255,255,255,.2);width:44px;height:44px;border-radius:16px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.brand-icon svg{width:24px;height:24px;fill:#fff}
+.brand-name{font-size:26px;font-weight:800;letter-spacing:-0.5px;line-height:1}
+.brand-sub{font-size:11px;color:rgba(255,255,255,.8);font-weight:500;margin-top:2px}
+.btn-settings{background:rgba(255,255,255,.2);border:none;width:42px;height:42px;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:background .2s}
+.btn-settings:hover{background:rgba(255,255,255,.3)}
+.btn-settings svg{width:22px;height:22px;stroke:#fff;fill:none}
+.status-bar{position:absolute;bottom:-22px;left:16px;right:16px;background:#fff;border-radius:18px;box-shadow:0 4px 20px rgba(0,0,0,.12);border:1px solid #f1f5f9;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10}
+.status-left{display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;background:#10b981;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-text{font-size:12px;font-weight:600;color:#64748b}
+.btn-clear{background:none;border:none;font-size:12px;font-weight:700;color:#f43f5e;cursor:pointer;padding:4px}
+.config-panel{display:none;background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:48px 20px 20px;gap:12px;flex-direction:column}
+.config-panel.open{display:flex;animation:slideDown .25s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.config-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.config-label{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}
+.key-status{font-size:11px;font-weight:700;color:#f43f5e}
+.key-status.ok{color:#10b981}
+.key-row{display:flex;gap:8px}
+.input-key{flex:1;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 14px;font-size:14px;outline:none;background:#fff;transition:border-color .2s}
+.input-key:focus{border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,.1)}
+.btn-save{background:#0284c7;color:#fff;border:none;border-radius:14px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap}
+.btn-save:hover{background:#0369a1}
+.config-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.config-card-title{font-size:12px;font-weight:700;color:#1e293b}
+.config-card-sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.btn-activate{background:#0284c7;color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap}
+.btn-activate:hover{background:#0369a1}
+.btn-activate.active{background:#10b981}
+
+/* GIỜ TUỲ CHỈNH */
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.time-item{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.time-item-label{font-size:12px;font-weight:700;color:#1e293b}
+.time-item-icon{font-size:14px}
+.time-input{border:1.5px solid #e2e8f0;border-radius:10px;padding:5px 8px;font-size:12px;font-weight:600;color:#0284c7;outline:none;background:#f0f9ff;width:70px;text-align:center}
+.time-input:focus{border-color:#0284c7}
+
+.demo-box{background:#fffbeb;border:1.5px solid #fde68a;border-radius:16px;padding:14px}
+.demo-title{font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px}
+.btn-demo{width:100%;background:#f59e0b;color:#fff;border:none;border-radius:12px;padding:11px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;box-shadow:0 2px 8px rgba(245,158,11,.3)}
+.btn-demo:hover{background:#d97706}
+.main{flex:1;padding:40px 20px 16px;overflow-y:auto}
+.section-title{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+.med-list{display:flex;flex-direction:column;gap:10px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;border:2px dashed #e2e8f0;border-radius:20px;text-align:center}
+.empty-icon{background:#f1f5f9;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.empty-icon svg{width:28px;height:28px;stroke:#94a3b8;fill:none}
+.empty-title{font-size:14px;font-weight:600;color:#475569}
+.empty-sub{font-size:12px;color:#94a3b8;margin-top:4px;line-height:1.5}
+.med-card{background:#fff;border:1.5px solid #f1f5f9;border-radius:20px;padding:14px 14px 14px 18px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.med-card::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:4px;background:#0284c7;border-radius:0 4px 4px 0}
+.med-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.med-body{flex:1;min-width:0}
+.med-name{font-size:14px;font-weight:700;color:#1e293b;line-height:1.3}
+.med-dosage{display:flex;align-items:center;gap:6px;margin-top:6px}
+.med-dosage svg{width:14px;height:14px;stroke:#0284c7;fill:none;flex-shrink:0}
+.med-dosage-text{font-size:12px;color:#64748b}
+.med-note{display:flex;align-items:center;gap:6px;margin-top:6px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:6px 10px}
+.med-note svg{width:13px;height:13px;stroke:#f59e0b;fill:none;flex-shrink:0}
+.med-note-text{font-size:11px;color:#92400e;font-weight:500}
+.med-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.time-badge{background:#eff6ff;border:1.5px solid #dbeafe;border-radius:12px;padding:5px 10px;text-align:center}
+.time-badge-text{font-size:11px;font-weight:700;color:#1d4ed8;line-height:1.2}
+.btn-delete{background:none;border:none;cursor:pointer;padding:2px;opacity:0;transition:opacity .2s;color:#fca5a5}
+.btn-delete:hover{color:#ef4444}
+.med-card:hover .btn-delete{opacity:1}
+.btn-delete svg{width:15px;height:15px;stroke:currentColor;fill:none}
+.footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px;border-radius:32px 32px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:14px}
+.footer-label{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:8px}
+.upload-area{border:2px dashed #38bdf8;background:#f0f9ff;border-radius:20px;padding:20px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:background .2s}
+.upload-area:hover{background:#e0f2fe}
+.upload-area svg{width:32px;height:32px;stroke:#0284c7;fill:none;margin-bottom:6px}
+.upload-area span{font-size:12px;font-weight:700;color:#0369a1}
+.preview-wrap{display:none;position:relative;border-radius:14px;overflow:hidden;border:1.5px solid #e2e8f0;background:#fff;padding:6px}
+.preview-wrap img{width:100%;height:100px;object-fit:cover;border-radius:10px;display:block}
+.btn-clear-img{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:16px;padding:12px 14px;font-size:13px;font-family:inherit;resize:none;outline:none;background:#fff;transition:border-color .2s;height:80px}
+.textarea:focus{border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,.1)}
+.btn-submit{width:100%;background:#0284c7;color:#fff;border:none;border-radius:16px;padding:15px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;box-shadow:0 4px 16px rgba(2,132,199,.3)}
+.btn-submit:hover{background:#0369a1}
+.btn-submit:active{transform:scale(.98)}
+.btn-submit svg{width:20px;height:20px;stroke:#fff;fill:none}
+.loading{display:none;flex-direction:column;align-items:center;padding:12px;gap:8px}
+.loading.show{display:flex}
+.spinner{width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#0284c7;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:12px;font-weight:600;color:#0284c7}
+.error-box{display:none;background:#fff1f2;border:1.5px solid #fecdd3;border-radius:14px;padding:12px 14px;font-size:12px;font-weight:600;color:#e11d48}
+.error-box.show{display:block}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:50;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:28px;padding:24px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(0,0,0,.2);border:1px solid #f1f5f9;animation:fadeIn .25s ease}
+.modal-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.modal-icon{background:#eff6ff;width:44px;height:44px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-icon svg{width:22px;height:22px;stroke:#0284c7;fill:none}
+.modal-title{font-size:17px;font-weight:700;color:#1e293b}
+.modal-body{font-size:13px;color:#475569;line-height:1.6;margin-bottom:12px}
+.modal-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px;display:flex;gap:8px;margin-bottom:18px}
+.modal-note svg{width:15px;height:15px;stroke:#10b981;fill:none;flex-shrink:0;margin-top:1px}
+.modal-note p{font-size:11px;color:#64748b;font-weight:500;line-height:1.5}
+.modal-btns{display:flex;gap:8px}
+.btn-deny{flex:1;background:#f1f5f9;color:#475569;border:none;border-radius:14px;padding:13px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-deny:hover{background:#e2e8f0}
+.btn-allow{flex:1;background:#0284c7;color:#fff;border:none;border-radius:14px;padding:13px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;box-shadow:0 4px 12px rgba(2,132,199,.25)}
+.btn-allow:hover{background:#0369a1}
+
+/* TOAST NHẮC NHẸ NHÀNG */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#0f172a;color:#fff;border-radius:20px;padding:14px 20px;display:flex;align-items:center;gap:12px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.3);min-width:300px;max-width:380px;opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-icon{width:40px;height:40px;border-radius:12px;background:#0284c7;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast-icon svg{width:20px;height:20px;fill:#fff}
+.toast-body{flex:1;min-width:0}
+.toast-title{font-size:13px;font-weight:700;color:#fff}
+.toast-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
+.toast-snooze{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.toast-snooze:hover{background:rgba(255,255,255,.25)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M10.5 3a1.5 1.5 0 00-1.5 1.5v5.25H3.75A1.5 1.5 0 002.25 11.25v1.5A1.5 1.5 0 003.75 14.25H9v5.25A1.5 1.5 0 0010.5 21h3a1.5 1.5 0 001.5-1.5V14.25h5.25a1.5 1.5 0 001.5-1.5v-1.5a1.5 1.5 0 00-1.5-1.5H15V4.5A1.5 1.5 0 0013.5 3h-3z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">SmartRx</div>
+          <div class="brand-sub">Bác sĩ ảo &amp; Nhắc lịch thuốc thông minh</div>
+        </div>
+      </div>
+      <button class="btn-settings" onclick="toggleConfig()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="status-bar">
+      <div class="status-left">
+        <span class="dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Sẵn sàng</span>
+      </div>
+      <button class="btn-clear" onclick="clearAllMeds()">Xóa tất cả lịch</button>
+    </div>
+  </div>
+
+  <div class="config-panel" id="config-panel">
+    <div>
+      <div class="config-label-row">
+        <span class="config-label">Google Gemini API Key</span>
+        <span class="key-status" id="key-status">Chưa cấu hình</span>
+      </div>
+      <div class="key-row">
+        <input type="password" id="api-key-input" class="input-key" placeholder="AIzaSy...">
+        <button class="btn-save" onclick="saveApiKey()">Lưu</button>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div>
+        <div class="config-card-title">Thông báo nhắc thuốc</div>
+        <div class="config-card-sub" id="notif-desc">Hiện trên màn hình chính, có snooze 10 phút</div>
+      </div>
+      <button class="btn-activate" id="notif-btn" onclick="requestNotif()">Kích Hoạt</button>
+    </div>
+
+    <!-- Giờ tuỳ chỉnh -->
+    <div>
+      <div class="config-label-row" style="margin-bottom:8px">
+        <span class="config-label">Giờ nhắc thuốc</span>
+        <button onclick="saveHours()" style="background:#0284c7;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer">Lưu giờ</button>
+      </div>
+      <div class="time-grid">
+        <div class="time-item">
+          <span class="time-item-icon">🌅</span>
+          <span class="time-item-label">Sáng</span>
+          <input type="time" id="time-SANG" class="time-input" value="07:00">
+        </div>
+        <div class="time-item">
+          <span class="time-item-icon">☀️</span>
+          <span class="time-item-label">Trưa</span>
+          <input type="time" id="time-TRUA" class="time-input" value="12:00">
+        </div>
+        <div class="time-item">
+          <span class="time-item-icon">🌤️</span>
+          <span class="time-item-label">Chiều</span>
+          <input type="time" id="time-CHIEU" class="time-input" value="17:00">
+        </div>
+        <div class="time-item">
+          <span class="time-item-icon">🌙</span>
+          <span class="time-item-label">Tối</span>
+          <input type="time" id="time-TOI" class="time-input" value="20:00">
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-title">Chế độ Demo:</div>
+      <button class="btn-demo" onclick="triggerDemo()">Thử nghiệm báo thức nhắc thuốc (sau 5 giây)</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="section-title">Lịch uống thuốc hôm nay</div>
+    <div class="med-list" id="med-list">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </div>
+        <div class="empty-title">Chưa có thuốc nào trong ngày</div>
+        <div class="empty-sub">Hãy cài đặt API Key, quét đơn thuốc bằng camera hoặc nhập thủ công để AI tự động thiết lập.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>
+      <span class="footer-label">Quét từ hình ảnh đơn thuốc</span>
+      <div class="upload-area" onclick="askFilePermission()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span>Chụp đơn thuốc hoặc chọn từ album</span>
+        <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImage(event)">
+      </div>
+    </div>
+    <div class="preview-wrap" id="preview-wrap">
+      <img id="img-preview" src="" alt="Preview">
+      <button class="btn-clear-img" onclick="clearPreview()">✕</button>
+    </div>
+    <div>
+      <span class="footer-label">Hoặc nhập tay đơn thuốc</span>
+      <textarea id="text-input" class="textarea" placeholder="Ví dụ: Panadol 500mg, uống 1 viên sau ăn..."></textarea>
+    </div>
+    <button class="btn-submit" id="submit-btn" onclick="processPrescription()">
+      <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+      </svg>
+      Phân tích bằng Trí Tuệ Nhân Tạo
+    </button>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span class="loading-text">Trí tuệ nhân tạo đang phân tích đơn thuốc...</span>
+    </div>
+    <div class="error-box" id="error-box"></div>
+  </div>
+</div>
+
+<!-- PERMISSION MODAL -->
+<div class="modal-overlay" id="perm-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+      </div>
+      <div class="modal-title">Quyền Truy Cập Hình Ảnh</div>
+    </div>
+    <div class="modal-body">Để phân tích các loại thuốc, ứng dụng <strong>SmartRx</strong> cần quyền truy cập vào máy ảnh hoặc thư viện ảnh trên thiết bị của bạn.</div>
+    <div class="modal-note">
+      <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+      <p>Hình ảnh chỉ được xử lý qua cổng kết nối an toàn của Google Gemini và không lưu trên máy chủ nào khác.</p>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-deny" onclick="closeModal(false)">Từ chối</button>
+      <button class="btn-allow" onclick="closeModal(true)">Đồng ý &amp; Tiếp tục</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NHẮC NHÀNG -->
+<div class="toast" id="toast">
+  <div class="toast-icon">
+    <svg viewBox="0 0 24 24"><path d="M10.5 3a1.5 1.5 0 00-1.5 1.5v5.25H3.75A1.5 1.5 0 002.25 11.25v1.5A1.5 1.5 0 003.75 14.25H9v5.25A1.5 1.5 0 0010.5 21h3a1.5 1.5 0 001.5-1.5V14.25h5.25a1.5 1.5 0 001.5-1.5v-1.5a1.5 1.5 0 00-1.5-1.5H15V4.5A1.5 1.5 0 0013.5 3h-3z"/></svg>
+  </div>
+  <div class="toast-body">
+    <div class="toast-title" id="toast-title">Giờ uống thuốc Sáng</div>
+    <div class="toast-sub" id="toast-sub">Panadol 500mg - 1 viên</div>
+  </div>
+  <button class="toast-snooze" id="toast-snooze" onclick="snoozeAlarm()">Nhắc lại 10p</button>
+</div>
+
+<script>
+let base64Image = null;
+const TIME_LABEL = {SANG:'Sáng',TRUA:'Trưa',CHIEU:'Chiều',TOI:'Tối'};
+const TIME_EMOJI = {SANG:'🌅',TRUA:'☀️',CHIEU:'🌤️',TOI:'🌙'};
+let TIME_HOURS = {SANG:7,TRUA:12,CHIEU:17,TOI:20};
+let alarmTimeouts = [];
+let snoozeTimeout = null;
+let currentSnoozeData = null;
+let toastHideTimer = null;
+
+// Icon SVG dạng data URL đồng bộ màu app
+const NOTIF_ICON = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
+  "<rect width='64' height='64' rx='16' fill='%230284c7'/>" +
+  "<path d='M27 14a5 5 0 00-5 5v8h-8a5 5 0 000 10h8v8a5 5 0 0010 0v-8h8a5 5 0 000-10h-8v-8a5 5 0 00-5-5z' fill='white'/>" +
+  "</svg>"
+);
+
+window.onload = () => {
+  const k = localStorage.getItem('gemini_api_key');
+  if(k){document.getElementById('api-key-input').value=k;setKeyOk(true);}
+  const savedH = localStorage.getItem('smartrx_hours');
+  if(savedH){
+    TIME_HOURS = JSON.parse(savedH);
+    // Cập nhật input
+    Object.keys(TIME_HOURS).forEach(k=>{
+      const el = document.getElementById('time-'+k);
+      if(el) el.value = String(TIME_HOURS[k]).padStart(2,'0')+':00';
+    });
+  }
+  const m = localStorage.getItem('smartrx_meds');
+  if(m){renderMeds(JSON.parse(m));scheduleAlarms(JSON.parse(m));}
+  if('Notification' in window && Notification.permission==='granted') setNotifActive();
+  registerSW();
+};
+
+// ── SERVICE WORKER (cho thông báo nền) ────────────────────
+function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  const swCode = `
+    self.addEventListener('install',()=>self.skipWaiting());
+    self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+    self.addEventListener('notificationclick',e=>{
+      e.notification.close();
+      if(e.action==='snooze'){
+        // Gửi message snooze về app
+        self.clients.matchAll().then(clients=>clients.forEach(c=>c.postMessage({type:'snooze',data:e.notification.data})));
+      } else {
+        self.clients.openWindow('/');
+      }
+    });
+  `;
+  const blob = new Blob([swCode],{type:'text/javascript'});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+  // Lắng nghe snooze từ SW
+  navigator.serviceWorker.addEventListener('message', e=>{
+    if(e.data?.type==='snooze') scheduleSnooze(e.data.data, 10);
+  });
+}
+
+// ── CONFIG ────────────────────────────────────────────────
+function toggleConfig(){document.getElementById('config-panel').classList.toggle('open');}
+
+function saveApiKey(){
+  const v=document.getElementById('api-key-input').value.trim();
+  if(!v) return;
+  localStorage.setItem('gemini_api_key',v);setKeyOk(true);
+}
+
+function saveHours(){
+  ['SANG','TRUA','CHIEU','TOI'].forEach(k=>{
+    const val = document.getElementById('time-'+k).value;
+    if(val) TIME_HOURS[k] = parseInt(val.split(':')[0]);
+  });
+  localStorage.setItem('smartrx_hours',JSON.stringify(TIME_HOURS));
+  // Reschedule
+  clearAlarms();
+  const meds = JSON.parse(localStorage.getItem('smartrx_meds')||'[]');
+  scheduleAlarms(meds);
+  showToast('✅ Đã lưu giờ nhắc thuốc', '');
+}
+
+function setKeyOk(ok){
+  const el=document.getElementById('key-status');
+  el.textContent=ok?'Đã cấu hình':'Chưa cấu hình';
+  el.className='key-status'+(ok?' ok':'');
+}
+
+async function requestNotif(){
+  if(!('Notification' in window)){alert('Trình duyệt không hỗ trợ thông báo');return;}
+  const p = await Notification.requestPermission();
+  if(p==='granted') setNotifActive();
+  else alert('Vui lòng cho phép thông báo trong cài đặt trình duyệt.');
+}
+
+function setNotifActive(){
+  const btn=document.getElementById('notif-btn');
+  btn.textContent='Đã Bật ✓';btn.classList.add('active');
+  document.getElementById('notif-desc').textContent='Hiện trên màn hình chính, có snooze 10 phút';
+}
+
+function triggerDemo(){
+  setTimeout(()=>{
+    fireNotification('Sáng','Đây là thử nghiệm SmartRx • Uống thuốc đúng giờ nhé! 💊',{name:'Demo thuốc',dosage:'1 viên',note:null});
+  }, 5000);
+  showToast('⏱️ Báo thức demo sau 5 giây','Kiểm tra màn hình chính của bạn');
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────
+function fireNotification(timeLabel, body, med){
+  const title = `${TIME_EMOJI[Object.keys(TIME_EMOJI).find(k=>TIME_LABEL[k]===timeLabel)||'SANG']} SmartRx — Giờ uống ${timeLabel}!`;
+
+  // 1. Thông báo hệ thống (hiện màn hình chính)
+  if('Notification' in window && Notification.permission==='granted'){
+    try{
+      const n = new Notification(title,{
+        body: body,
+        icon: NOTIF_ICON,
+        badge: NOTIF_ICON,
+        tag: 'smartrx-'+timeLabel,
+        renotify: true,
+        requireInteraction: true,
+        vibrate: [200,100,200],
+        data: {timeLabel, med}
+      });
+      n.onclick = ()=>{window.focus();n.close();};
+    }catch(e){}
+  }
+
+  // 2. Toast trong app (nhắc nhẹ nhàng đồng bộ giao diện)
+  const medLine = med ? `${med.name}${med.dosage?' — '+med.dosage:''}${med.note?' • '+med.note:''}` : body;
+  currentSnoozeData = {timeLabel, med};
+  showToastAlarm(title, medLine);
+}
+
+function showToastAlarm(title, sub){
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent = sub;
+  toast.classList.add('show');
+  if(toastHideTimer) clearTimeout(toastHideTimer);
+  toastHideTimer = setTimeout(()=>toast.classList.remove('show'), 12000);
+}
+
+function showToast(title, sub){
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent = sub;
+  document.getElementById('toast-snooze').style.display = 'none';
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  if(toastHideTimer) clearTimeout(toastHideTimer);
+  toastHideTimer = setTimeout(()=>{toast.classList.remove('show');document.getElementById('toast-snooze').style.display='';}, 3000);
+}
+
+function snoozeAlarm(){
+  document.getElementById('toast').classList.remove('show');
+  if(currentSnoozeData) scheduleSnooze(currentSnoozeData, 10);
+}
+
+function scheduleSnooze(data, minutes){
+  if(snoozeTimeout) clearTimeout(snoozeTimeout);
+  snoozeTimeout = setTimeout(()=>{
+    const med = data.med;
+    const body = med ? `${med.name}${med.dosage?' — '+med.dosage:''}` : 'Uống thuốc đúng giờ nhé!';
+    fireNotification(data.timeLabel, '⏰ Nhắc lại: '+body, med);
+  }, minutes*60*1000);
+  showToast(`⏱️ Snooze ${minutes} phút`, 'Sẽ nhắc lại lúc '+ new Date(Date.now()+minutes*60000).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}));
+}
+
+// ── ALARMS SCHEDULER ──────────────────────────────────────
+function clearAlarms(){
+  alarmTimeouts.forEach(t=>clearTimeout(t));
+  alarmTimeouts=[];
+}
+
+function scheduleAlarms(meds){
+  clearAlarms();
+  if(!meds||!meds.length) return;
+  const now = new Date();
+
+  // Group thuốc theo giờ
+  const groups = {};
+  meds.forEach(med=>{
+    (med.times||[]).forEach(t=>{
+      if(!groups[t]) groups[t]=[];
+      groups[t].push(med);
+    });
+  });
+
+  Object.keys(groups).forEach(t=>{
+    const h = TIME_HOURS[t];
+    if(h===undefined) return;
+    const target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,0,0);
+    let delay = target - now;
+    if(delay<=0) delay += 24*60*60*1000; // ngày hôm sau
+
+    const mList = groups[t];
+    const id = setTimeout(()=>{
+      const names = mList.map(m=>m.name+(m.dosage?' ('+m.dosage+')':'')).join('\n• ');
+      const notes = mList.filter(m=>m.note).map(m=>'⚠️ '+m.note).join(' ');
+      const body = '• '+names+(notes?'\n'+notes:'');
+      // Dùng thuốc đầu tiên đại diện cho toast
+      fireNotification(TIME_LABEL[t], body, mList[0]);
+      // Tự lặp lại ngày mai
+      scheduleAlarms(meds);
+    }, delay);
+    alarmTimeouts.push(id);
+  });
+}
+
+// ── FILE ──────────────────────────────────────────────────
+function askFilePermission(){
+  if(localStorage.getItem('file_perm')==='true'){document.getElementById('img-input').click();}
+  else{document.getElementById('perm-modal').classList.add('show');}
+}
+function closeModal(ok){
+  document.getElementById('perm-modal').classList.remove('show');
+  if(ok){localStorage.setItem('file_perm','true');document.getElementById('img-input').click();}
+}
+function handleImage(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=(ev)=>{
+    const full=ev.target.result;
+    base64Image=full.split(',')[1];
+    document.getElementById('img-preview').src=full;
+    document.getElementById('preview-wrap').style.display='block';
+  };
+  r.readAsDataURL(f);
+}
+function clearPreview(){
+  base64Image=null;
+  document.getElementById('preview-wrap').style.display='none';
+  document.getElementById('img-input').value='';
+}
+
+// ── AI PROCESS ────────────────────────────────────────────
+async function processPrescription(){
+  const key=localStorage.getItem('gemini_api_key');
+  if(!key){showError('Vui lòng cấu hình Google Gemini API Key trước.');return;}
+  const text=document.getElementById('text-input').value.trim();
+  if(!text&&!base64Image){showError('Vui lòng nhập đơn thuốc hoặc chụp ảnh đơn thuốc.');return;}
+  setLoading(true);clearError();
+
+  const prompt=`Bạn là trợ lý phân tích đơn thuốc. Phân tích và trả về JSON hợp lệ (chỉ JSON, không markdown, không backtick):
+{"medicines":[{"name":"Tên thuốc - hàm lượng","dosage":"liều dùng (ví dụ: 2 viên)","times":["SANG","TOI"],"note":"lưu ý hoặc null"}]}
+Giá trị times hợp lệ: SANG, TRUA, CHIEU, TOI. Phân tích kỹ hướng dẫn dùng thuốc.${text?'\nĐơn thuốc: '+text:''}`;
+
+  try{
+    let body;
+    if(base64Image){body={contents:[{parts:[{text:prompt},{inline_data:{mime_type:'image/jpeg',data:base64Image}}]}]};}
+    else{body={contents:[{parts:[{text:prompt}]}]};}
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Lỗi API');}
+    const data=await res.json();
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const cleaned=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(cleaned);
+    if(!parsed.medicines?.length){showError('Không nhận diện được thuốc. Vui lòng thử lại.');return;}
+    const existing=JSON.parse(localStorage.getItem('smartrx_meds')||'[]');
+    const newMeds=parsed.medicines.map((m,i)=>({...m,id:Date.now()+i}));
+    const merged=[...existing,...newMeds];
+    localStorage.setItem('smartrx_meds',JSON.stringify(merged));
+    renderMeds(merged);
+    document.getElementById('text-input').value='';
+    clearPreview();
+    scheduleAlarms(merged);
+    showToast('✅ Đã thêm '+newMeds.length+' loại thuốc','Báo thức đã được đặt tự động');
+  }catch(err){showError('Lỗi: '+err.message);}
+  finally{setLoading(false);}
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function renderMeds(meds){
+  const list=document.getElementById('med-list');
+  const empty=document.getElementById('empty-state');
+  list.querySelectorAll('.med-card').forEach(el=>el.remove());
+  if(!meds||!meds.length){empty.style.display='flex';return;}
+  empty.style.display='none';
+  meds.forEach(med=>{
+    const labels=(med.times||[]).map(t=>(TIME_EMOJI[t]||'')+' '+(TIME_LABEL[t]||t)).join('\n');
+    const noteHtml=med.note?`<div class="med-note"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg><span class="med-note-text">${med.note}</span></div>`:'';
+    const card=document.createElement('div');
+    card.className='med-card';card.dataset.id=med.id;
+    card.innerHTML=`<div class="med-inner">
+      <div class="med-body">
+        <div class="med-name">${med.name}</div>
+        ${med.dosage?`<div class="med-dosage"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><span class="med-dosage-text">Liều dùng: ${med.dosage}</span></div>`:''}
+        ${noteHtml}
+      </div>
+      <div class="med-right">
+        <div class="time-badge"><span class="time-badge-text">${labels}</span></div>
+        <button class="btn-delete" onclick="deleteMed(${med.id})"><svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+    </div>`;
+    list.appendChild(card);
+  });
+}
+
+function deleteMed(id){
+  const meds=JSON.parse(localStorage.getItem('smartrx_meds')||'[]').filter(m=>m.id!==id);
+  localStorage.setItem('smartrx_meds',JSON.stringify(meds));
+  renderMeds(meds);scheduleAlarms(meds);
+}
+
+function clearAllMeds(){
+  if(!confirm('Xóa toàn bộ lịch uống thuốc?'))return;
+  localStorage.removeItem('smartrx_meds');
+  renderMeds([]);clearAlarms();
+}
+
+function setLoading(on){
+  document.getElementById('submit-btn').style.display=on?'none':'flex';
+  document.getElementById('loading').className='loading'+(on?' show':'');
+}
+function showError(msg){const el=document.getElementById('error-box');el.textContent=msg;el.className='error-box show';}
+function clearError(){document.getElementById('error-box').className='error-box';}
+</script>
+</body>
+</html>
